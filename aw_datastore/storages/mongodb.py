@@ -26,9 +26,9 @@ class MongoDBStorage(AbstractStorage):
         self.logger = logger.getChild(self.sid)
         self.client = pymongo.MongoClient(
             "mongodb+srv://proton_dc2018:proton_dc2018@cluster0.r6ozr.gcp.mongodb.net/activitywatch?retryWrites=true&w=majority",
-            serverSelectionTimeoutMS=5000)
-        # self.client = pymongo.MongoClient(serverSelectionTimeoutMS=5000)
-        # Try to connect to the server to make sure that it's available
+                serverSelectionTimeoutMS=5000)
+            # self.client = pymongo.MongoClient(serverSelectionTimeoutMS=5000)
+            # Try to connect to the server to make sure that it's available
         # If it isn't, it will raise pymongo.errors.ServerSelectionTimeoutError
         self.client.server_info()
 
@@ -68,7 +68,7 @@ class MongoDBStorage(AbstractStorage):
     def buckets(self) -> Dict[str, dict]:
         bucketnames = set()
         for bucket_coll in self.db.collection_names():
-            bucketnames.add(bucket_coll.split(".")[0])
+            bucketnames.add(bucket_coll.split(".")[0]+'.local')
         bucketnames.discard("system")  # Discard all system collections
         buckets = dict()
         for bucket_id in bucketnames:
@@ -81,7 +81,8 @@ class MongoDBStorage(AbstractStorage):
             del metadata["_id"]
             return metadata
         else:
-            raise Exception("Bucket did not exist, could not get metadata")
+            # raise Exception("Bucket did not exist, could not get metadata")
+            return False
 
     def get_events(
         self,
