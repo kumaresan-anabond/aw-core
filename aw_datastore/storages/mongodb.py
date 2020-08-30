@@ -33,7 +33,7 @@ class MongoDBStorage(AbstractStorage):
         self.client.server_info()
 
         self.db = self.client["activitywatch" + ("-testing" if testing else "")]
-
+        self.bucket = None
     def create_bucket(
         self,
         bucket_id: str,
@@ -43,6 +43,7 @@ class MongoDBStorage(AbstractStorage):
         created: str,
         name: str = None,
     ) -> None:
+        self.bucket = None
         if not name:
             name = bucket_id
         metadata = {
@@ -57,6 +58,7 @@ class MongoDBStorage(AbstractStorage):
         self.db[bucket_id]["metadata"].insert_one(metadata)
 
     def delete_bucket(self, bucket_id: str) -> None:
+        self.bucket = None
         print(self.db.collection_names())
         if bucket_id + ".metadata" in self.db.collection_names():
             self.db[bucket_id]["events"].drop()
@@ -66,6 +68,8 @@ class MongoDBStorage(AbstractStorage):
             raise Exception("Bucket did not exist, could not delete")
 
     def buckets(self) -> Dict[str, dict]:
+        if self.bucket != None:
+            return self.bucket
         bucketnames = set()
         for bucket_coll in self.db.collection_names():
             bucketnames.add(bucket_coll.split(".")[0])
@@ -73,6 +77,7 @@ class MongoDBStorage(AbstractStorage):
         buckets = dict()
         for bucket_id in bucketnames:
             buckets[bucket_id] = self.get_metadata(bucket_id)
+        self.bucket = buckets
         return buckets
 
     def get_metadata(self, bucket_id: str) -> dict:
